@@ -29,8 +29,9 @@ onValue(itemsInDB, snapshot => {
 )
 
 function appendItemToShoppingListEl(itemName) {
-    shoppingListEl.innerHTML += `<li>${itemName}</li>`
-
+    const liEl = document.createElement("li")
+    liEl.textContent = itemName
+    shoppingListEl.appendChild(liEl)
 }
 
 function clearInputFieldEl() {
