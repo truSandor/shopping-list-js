@@ -1,5 +1,5 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"
-import {getDatabase, ref, push, onValue} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"
+import {getDatabase, ref, push, onValue, remove} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"
 
 const appSettings = {
     databaseURL: "https://playground-f9fa0-default-rtdb.europe-west1.firebasedatabase.app/" //process.env.DATABASE_URL
@@ -22,15 +22,25 @@ addButtonEl.addEventListener("click", function () {
 )
 
 onValue(itemsInDB, snapshot => {
-        let itemEntries = Object.entries(snapshot.val())
-        clearShoppingListEl()
-        itemEntries.forEach(entry => appendItemToShoppingListEl(entry))
+        if (!snapshot.exists()) {
+            shoppingListEl.innerHTML = "No items here... yet"
+        } else {
+            let itemEntries = Object.entries(snapshot.val())
+            clearShoppingListEl()
+            itemEntries.forEach(entry => appendItemToShoppingListEl(entry))
+        }
     }
 )
 
-function appendItemToShoppingListEl(itemName) {
+function appendItemToShoppingListEl(item) {
     const liEl = document.createElement("li")
-    liEl.textContent = itemName
+    liEl.id = item[0]
+    liEl.textContent = item[1]
+    liEl.addEventListener("click", () => {
+            const exactLocationOfItemInDB = ref(database, `items/${liEl.id}`)
+            remove(exactLocationOfItemInDB)
+        }
+    )
     shoppingListEl.appendChild(liEl)
 }
 
