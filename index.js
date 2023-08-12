@@ -34,10 +34,10 @@ onValue(itemsInDB, snapshot => {
 
 function appendItemToShoppingListEl(item) {
     const liEl = document.createElement("li")
-    liEl.id = item[0]
+    const itemId = item[0]
     liEl.textContent = item[1]
     liEl.addEventListener("click", () => {
-            const exactLocationOfItemInDB = ref(database, `items/${liEl.id}`)
+            const exactLocationOfItemInDB = ref(database, `items/${itemId}`)
             remove(exactLocationOfItemInDB)
         }
     )
