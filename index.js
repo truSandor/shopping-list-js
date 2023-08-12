@@ -9,11 +9,17 @@ const app = initializeApp(appSettings)
 const database = getDatabase(app)
 const itemsInDB = ref(database, "items")
 
-console.log(app)
-
 const inputFieldEl = document.getElementById("input-field")
 const addButtonEl = document.getElementById("add-button")
+const shoppingListEl = document.getElementById("shopping-list")
 
 addButtonEl.addEventListener("click", function() {
-    push(itemsInDB, inputFieldEl.value)
+    const inputValue = inputFieldEl.value
+    push(itemsInDB, inputValue)
+    clearInputFieldEl();
+    shoppingListEl.innerHTML+=`<li>${inputValue}</li>`
 })
+
+function clearInputFieldEl() {
+    inputFieldEl.value = ""
+}
