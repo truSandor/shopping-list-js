@@ -1,47 +1,61 @@
-import {initializeApp} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"
-import {getDatabase, ref, push, onValue, remove} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"
-
-const appSettings = {
-    databaseURL: "https://playground-f9fa0-default-rtdb.europe-west1.firebasedatabase.app/" //process.env.DATABASE_URL
-}
-
-const app = initializeApp(appSettings)
-const database = getDatabase(app)
-const itemsInDB = ref(database, "items")
-
 const inputFieldEl = document.getElementById("input-field")
 const addButtonEl = document.getElementById("add-button")
 const shoppingListEl = document.getElementById("shopping-list")
+const shoppingListFromStorage = localStorage.getItem("shoppingList")
 
+const shoppingList = shoppingListFromStorage ? new Map(JSON.parse(shoppingListFromStorage)) : new Map()
+let id = shoppingList.size === 0 ? 0 : findHighestId(shoppingList)
+
+
+function addToShoppingList(inputValue) {
+    if (shoppingList.size === 0) shoppingListEl.innerHTML = ""
+    shoppingList.set(id, inputValue)
+    localStorage.setItem("shoppingList", JSON.stringify(Array.from(shoppingList.entries())))
+    appendItemToShoppingListEl(id, inputValue)
+    clearInputFieldEl()
+}
 
 addButtonEl.addEventListener("click", function () {
         const inputValue = inputFieldEl.value
-        push(itemsInDB, inputValue)
-        clearInputFieldEl();
+        if (!inputValue) return
+        id++
+        addToShoppingList(inputValue);
     }
 )
 
-onValue(itemsInDB, snapshot => {
-        if (!snapshot.exists()) {
-            shoppingListEl.innerHTML = "No items here... yet"
-        } else {
-            let itemEntries = Object.entries(snapshot.val())
-            clearShoppingListEl()
-            itemEntries.forEach(entry => appendItemToShoppingListEl(entry))
+function findHighestId(shoppingList) {
+    let [max] = shoppingList.keys()
+    for (const id of shoppingList.keys()) {
+        max = (id > max) ? id : max
+    }
+    return max
+}
+
+function renderShoppingList() {
+    if (shoppingList.size === 0) {
+        shoppingListEl.innerHTML = "No items here... yet"
+    } else {
+        clearShoppingListEl()
+        for (const e of shoppingList.entries()) {
+            appendItemToShoppingListEl(e[0], e[1])
         }
     }
-)
+}
 
-function appendItemToShoppingListEl(item) {
+function appendItemToShoppingListEl(id, item) {
     const liEl = document.createElement("li")
-    const itemId = item[0]
-    liEl.textContent = item[1]
+    liEl.textContent = item
     liEl.addEventListener("click", () => {
-            const exactLocationOfItemInDB = ref(database, `items/${itemId}`)
-            remove(exactLocationOfItemInDB)
+            removeItemFromShoppingList(id)
+            renderShoppingList()
         }
     )
     shoppingListEl.appendChild(liEl)
+}
+
+function removeItemFromShoppingList(id) {
+    shoppingList.delete(id)
+    localStorage.setItem("shoppingList", JSON.stringify(Array.from(shoppingList.entries())))
 }
 
 function clearInputFieldEl() {
@@ -51,3 +65,5 @@ function clearInputFieldEl() {
 function clearShoppingListEl() {
     shoppingListEl.innerHTML = ""
 }
+
+renderShoppingList()
